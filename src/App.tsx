@@ -18,6 +18,7 @@ import { initKukaiEmbedClient } from "./components/utils/kukai-embed"
 import { initWalletConnect } from "./components/utils/wallet-connect"
 import { connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveSession, getAddressFromSession, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
 import { PROVIDERS } from "./model/constants"
+import { getTelegramUser } from "./utils/telegram-utils"
 
 enum APP_STATE {
   INITIALIING,
@@ -232,6 +233,8 @@ function App() {
   const isLoading = appState === APP_STATE.LOADING
   const notReady = appState !== APP_STATE.READY
 
+  const telegramUserData = getTelegramUser()
+
   return (
     <main>
       <div>
@@ -261,6 +264,9 @@ function App() {
           </DrawerContent>
         </Drawer>
       </div>
+      {!!telegramUserData && <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 mb-4 text-[14px]">
+        Unverified Telegram User: {telegramUserData}
+      </div>}
     </main>
   )
 }

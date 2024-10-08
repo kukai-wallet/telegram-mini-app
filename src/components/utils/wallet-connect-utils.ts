@@ -15,7 +15,7 @@ export const WalletConnectQRCodeModal = new WalletConnectModal({
         id: "kukai",
         links: {
             universal: KUKAI_DESKTOP_UNIVERSAL_LINK,
-            native: KUKAI_DESKTOP_UNIVERSAL_LINK,
+            native: "kukai://",
         }
     }],
     desktopWallets: [{
