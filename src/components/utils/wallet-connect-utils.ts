@@ -3,8 +3,8 @@ import { getSdkError } from "@walletconnect/utils";
 import { WalletConnectModal } from "@walletconnect/modal";
 import { CLIENT_CONFIG } from "./wallet-connect";
 
-const NETWORK = "ghostnet"
-const KUKAI_DESKTOP_UNIVERSAL_LINK = "https://ghostnet.kukai.app"
+export const NETWORK = "ghostnet"
+export const KUKAI_DESKTOP_UNIVERSAL_LINK = "https://ghostnet.kukai.app"
 
 export const WalletConnectQRCodeModal = new WalletConnectModal({
     projectId: CLIENT_CONFIG.projectId,

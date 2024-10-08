@@ -27,6 +27,7 @@ enum APP_STATE {
 
 
 interface User {
+  address: string
   iconURL: string
   name: string
   provider: PROVIDERS
@@ -55,8 +56,8 @@ function App() {
     const { user } = KukaiEmbedClient
 
     if (user) {
-      const { name, profileImage } = user.userData as Record<string, string>
-      setUser({ name, iconURL: profileImage, provider: PROVIDERS.KUKAI_EMBED })
+      const { name, profileImage, pkh } = user.userData as Record<string, string>
+      setUser({ name, iconURL: profileImage, address: pkh, provider: PROVIDERS.KUKAI_EMBED })
       setAppState(APP_STATE.READY)
     }
   }
@@ -76,7 +77,7 @@ function App() {
         return
       }
 
-      setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+      setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
       setProvider(PROVIDERS.WALLET_CONNECT)
     })
 
@@ -149,7 +150,7 @@ function App() {
     const session = getActiveSession(client)
     const address = session.sessionProperties?.address || ''
 
-    setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+    setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
     setProvider(PROVIDERS.WALLET_CONNECT)
     setAppState(APP_STATE.READY)
 
@@ -179,9 +180,9 @@ function App() {
 
     try {
       const user = await kukaiEmbedClient.current!.login({})
-      const { name, profileImage } = user.userData as Record<string, string>
+      const { name, pkh, profileImage } = user.userData as Record<string, string>
 
-      setUser({ name, iconURL: profileImage, provider: PROVIDERS.KUKAI_EMBED })
+      setUser({ name, address: pkh, iconURL: profileImage, provider: PROVIDERS.KUKAI_EMBED })
     } catch (error) {
       console.log(error)
     } finally {
@@ -202,7 +203,7 @@ function App() {
         return
       }
 
-      setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+      setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
     } catch (error) {
       console.log(error)
     } finally {
@@ -234,7 +235,7 @@ function App() {
   return (
     <main>
       <div>
-        {user && <UserCard {...user} provider={provider} />}
+        {user && <UserCard kukaiEmbedClient={kukaiEmbedClient.current!} walletConnectClient={walletConnectClient.current!} {...user} provider={provider} />}
         {user
           ? <Button disabled={appState !== APP_STATE.READY} variant="outline" onClick={handleDisconnect}>
             {notReady ? <LoadingText /> : 'Disconnect'}
