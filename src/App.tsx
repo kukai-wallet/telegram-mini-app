@@ -7,12 +7,17 @@ import {
   DrawerTitle
 } from "@/components/ui/drawer"
 import { ReloadIcon } from "@radix-ui/react-icons"
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 
+import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
 import './App.css'
 import { EmailIcon, WalletConnectIcon } from "./assets/icons/Icons"
 import UserCard from "./components/user/UserCard"
+import { initKukaiEmbedClient } from "./components/utils/kukai-embed"
+import { initWalletConnect } from "./components/utils/wallet-connect"
+import { connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveSession, getAddressFromSession, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
+import { PROVIDERS } from "./model/constants"
 
 enum APP_STATE {
   INITIALIING,
@@ -20,17 +25,13 @@ enum APP_STATE {
   READY,
 }
 
-enum PROVIDERS {
-  KUKAI_EMBED = "kukai-embed",
-  WALLET_CONNECT = "wallet-connect"
-}
 
 interface User {
-  name: string,
-  iconURL: string,
+  iconURL: string
+  name: string
+  provider: PROVIDERS
 }
 
-const KukaiEmbedClient = new KukaiEmbed({ net: "https://feature-redirect-uri.kukai-private.pages.dev", icon: false, enableLogging: false })
 
 let hasAttemptedInit = false;
 
@@ -40,17 +41,120 @@ function App() {
   const [appState, setAppState] = useState(APP_STATE.INITIALIING)
   const [provider, setProvider] = useState(PROVIDERS.KUKAI_EMBED)
 
+  const kukaiEmbedClient = useRef<KukaiEmbed>()
+  const walletConnectClient = useRef<SignClient>()
+
   const handleInit = async () => {
-    await KukaiEmbedClient.init()
+    const [KukaiEmbedClient, WalletConnectClient] = await Promise.all([initKukaiEmbedClient(), initWalletConnect()])
+
+    kukaiEmbedClient.current = KukaiEmbedClient
+    walletConnectClient.current = WalletConnectClient
+
+    subscribeToEvents(WalletConnectClient)
+
     const { user } = KukaiEmbedClient
 
     if (user) {
       const { name, profileImage } = user.userData as Record<string, string>
-      setUser({ name, iconURL: profileImage })
+      setUser({ name, iconURL: profileImage, provider: PROVIDERS.KUKAI_EMBED })
+      setAppState(APP_STATE.READY)
+    }
+  }
+
+  const subscribeToEvents = useCallback((client: SignClient) => {
+    WalletConnectQRCodeModal.subscribeModal(() => {
+      setAppState(APP_STATE.READY)
+      setIsOpen(false)
+    })
+
+    client.on("session_update", ({ topic, params }) => {
+      const { namespaces } = params
+      const session = { ...client.session?.get(topic), namespaces }
+
+      const address = getAddressFromSession(session)
+      if (!address) {
+        return
+      }
+
+      setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+      setProvider(PROVIDERS.WALLET_CONNECT)
+    })
+
+    client.on("session_delete", () => {
+      setUser((prevUser) => {
+        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          return null
+        }
+        return prevUser
+      })
+    })
+
+    client.on('session_expire', () => {
+      setUser((prevUser) => {
+        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          return null
+        }
+        return prevUser
+      })
+    })
+
+    client.core.pairing.events.on('pairing_delete', (payload) => {
+      console.log('Pairing delete:', payload)
+      setUser((prevUser) => {
+        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          return null
+        }
+        return prevUser
+      })
+    })
+
+    client.core.pairing.events.on('pairing_expire', (payload) => {
+      console.log('Pairing expired:', payload)
+      setUser((prevUser) => {
+        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          return null
+        }
+        return prevUser
+      })
+    });
+
+    if (!client) {
+      throw new Error('WalletConnect not initialized')
     }
 
+    if (!client.session.length) {
+      const activePairing = getActivePairing(client)
+
+      if (!activePairing) {
+        setUser((prevUser) => {
+          if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+            return null
+          }
+          return prevUser
+        })
+        setAppState(APP_STATE.READY)
+        return
+      }
+
+      setUser((prevUser) => {
+        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          return null
+        }
+        return prevUser
+      })
+      setAppState(APP_STATE.READY)
+      return
+    }
+
+    const session = getActiveSession(client)
+    const address = session.sessionProperties?.address || ''
+
+    setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+    setProvider(PROVIDERS.WALLET_CONNECT)
     setAppState(APP_STATE.READY)
-  }
+
+    return client
+  }, [setUser])
 
   useEffect(() => {
     if (hasAttemptedInit) {
@@ -73,22 +177,55 @@ function App() {
     setProvider(PROVIDERS.KUKAI_EMBED)
     setAppState(APP_STATE.LOADING)
 
-    const user = await KukaiEmbedClient.login({})
-    const { name, profileImage } = user.userData as Record<string, string>
-    setUser({ name, iconURL: profileImage })
-    setAppState(APP_STATE.READY)
+    try {
+      const user = await kukaiEmbedClient.current!.login({})
+      const { name, profileImage } = user.userData as Record<string, string>
+
+      setUser({ name, iconURL: profileImage, provider: PROVIDERS.KUKAI_EMBED })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setAppState(APP_STATE.READY)
+    }
   }
 
-  function handleWalletConnect() {
-    setProvider(PROVIDERS.WALLET_CONNECT)
+  async function handleWalletConnect() {
     setAppState(APP_STATE.LOADING)
+    setProvider(PROVIDERS.WALLET_CONNECT)
+
+    try {
+      const [address] = await connectAccount(walletConnectClient.current!)
+
+      if (!address) {
+        setIsOpen(false)
+        setAppState(APP_STATE.READY)
+        return
+      }
+
+      setUser({ name: formatAddress(address), iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setAppState(APP_STATE.READY)
+    }
   }
 
   async function handleDisconnect() {
     setAppState(APP_STATE.LOADING)
-    await KukaiEmbedClient.logout()
-    setUser(null)
-    setAppState(APP_STATE.READY)
+
+    try {
+      if (provider === PROVIDERS.WALLET_CONNECT) {
+        await disconnectWalletConnect(walletConnectClient.current!)
+      } else {
+        await kukaiEmbedClient.current!.logout()
+      }
+    } catch (error) {
+      console.warn(error)
+    } finally {
+      setUser(null)
+      setAppState(APP_STATE.READY)
+    }
+
   }
 
   const isLoading = appState === APP_STATE.LOADING
@@ -106,10 +243,9 @@ function App() {
             {notReady ? <LoadingText /> : 'Connect Wallet'}
           </Button>}
         <Drawer open={isOpen} onClose={handleClose}>
-          <DrawerContent>
+          <DrawerContent className="pb-6">
             <DrawerHeader>
               <DrawerTitle>Connect Wallet</DrawerTitle>
-              {/* <DrawerDescription>Choose one of .</DrawerDescription> */}
             </DrawerHeader>
             <DrawerFooter>
               <Button variant="default" disabled={isLoading && provider === PROVIDERS.KUKAI_EMBED} onClick={handleKukaiEmbed}>
@@ -123,7 +259,6 @@ function App() {
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
-
       </div>
     </main>
   )
