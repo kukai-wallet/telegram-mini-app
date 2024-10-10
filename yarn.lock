@@ -1447,6 +1447,69 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tonconnect/isomorphic-eventsource@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@tonconnect/isomorphic-eventsource@npm:0.0.2"
+  dependencies:
+    eventsource: "npm:^2.0.2"
+  checksum: 10c0/dbce08a4c1a5869b32452e7d37d0a2a5556fc6911f4c097aaa4ac8c6946c101ccba2ce4633803e512a9a0d0a19a71ae350585e49349887a8598c66ff04d0b6b9
+  languageName: node
+  linkType: hard
+
+"@tonconnect/isomorphic-fetch@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "@tonconnect/isomorphic-fetch@npm:0.0.3"
+  dependencies:
+    node-fetch: "npm:^2.6.9"
+  checksum: 10c0/7c1d8f972636548af48691b52012604734f73e9780322e85e769bebfcbd72aa63e04efda6f49569f575bddfbae50606eb2413eee81727cb359065ddddf389e3e
+  languageName: node
+  linkType: hard
+
+"@tonconnect/protocol@npm:^2.2.6":
+  version: 2.2.6
+  resolution: "@tonconnect/protocol@npm:2.2.6"
+  dependencies:
+    tweetnacl: "npm:^1.0.3"
+    tweetnacl-util: "npm:^0.15.1"
+  checksum: 10c0/6d4acd20acf8c92dfcdff4f9909a589faf8e7a47e381347b3165aee2454216029682591e7f1ab7bbaa1f566bfaeb462c4f5facd574fb685c81f9c6147cceadfc
+  languageName: node
+  linkType: hard
+
+"@tonconnect/sdk@npm:3.0.5":
+  version: 3.0.5
+  resolution: "@tonconnect/sdk@npm:3.0.5"
+  dependencies:
+    "@tonconnect/isomorphic-eventsource": "npm:^0.0.2"
+    "@tonconnect/isomorphic-fetch": "npm:^0.0.3"
+    "@tonconnect/protocol": "npm:^2.2.6"
+  checksum: 10c0/f80ad56119950b3b40dd2c2f222e5a6c8854c5abe1c3137d50a5c792f4a40ecfd20f5ef7cd33851a5ff3d6296b2afb1883763c03a190282efdd537785400f60f
+  languageName: node
+  linkType: hard
+
+"@tonconnect/ui-react@npm:^2.0.9":
+  version: 2.0.9
+  resolution: "@tonconnect/ui-react@npm:2.0.9"
+  dependencies:
+    "@tonconnect/ui": "npm:2.0.9"
+  peerDependencies:
+    react: ">=17.0.0"
+    react-dom: ">=17.0.0"
+  checksum: 10c0/c907968620214ea551bf0ed994d28e7bf1a0502a3fd142cc80cfd49d657e43a868f9684099fb7e925260165e0b3ca694b09f0f48358888476fc99fc4cb3c23aa
+  languageName: node
+  linkType: hard
+
+"@tonconnect/ui@npm:2.0.9":
+  version: 2.0.9
+  resolution: "@tonconnect/ui@npm:2.0.9"
+  dependencies:
+    "@tonconnect/sdk": "npm:3.0.5"
+    classnames: "npm:^2.3.2"
+    deepmerge: "npm:^4.2.2"
+    ua-parser-js: "npm:^1.0.35"
+  checksum: 10c0/9390f45c72fdb3c63c3e69aeafffc59f4a415b8aa6e9e41b880cdfbfce964c2d2f8accd97b40170003475fb811a0e7f8e70c214acebe62fbccf4a948de594cc0
+  languageName: node
+  linkType: hard
+
 "@types/babel__core@npm:^7.20.5":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -2273,6 +2336,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"classnames@npm:^2.3.2":
+  version: 2.5.1
+  resolution: "classnames@npm:2.5.1"
+  checksum: 10c0/afff4f77e62cea2d79c39962980bf316bacb0d7c49e13a21adaadb9221e1c6b9d3cdb829d8bb1b23c406f4e740507f37e1dcf506f7e3b7113d17c5bab787aa69
+  languageName: node
+  linkType: hard
+
 "clean-stack@npm:^2.0.0":
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
@@ -2456,6 +2526,13 @@ __metadata:
   version: 0.1.4
   resolution: "deep-is@npm:0.1.4"
   checksum: 10c0/7f0ee496e0dff14a573dc6127f14c95061b448b87b995fc96c017ce0a1e66af1675e73f1d6064407975bc4ea6ab679497a29fff7b5b9c4e99cb10797c1ad0b4c
+  languageName: node
+  linkType: hard
+
+"deepmerge@npm:^4.2.2":
+  version: 4.3.1
+  resolution: "deepmerge@npm:4.3.1"
+  checksum: 10c0/e53481aaf1aa2c4082b5342be6b6d8ad9dfe387bc92ce197a66dea08bd4265904a087e75e464f14d1347cf2ac8afe1e4c16b266e0561cc5df29382d3c5f80044
   languageName: node
   linkType: hard
 
@@ -2836,6 +2913,13 @@ __metadata:
   version: 3.3.0
   resolution: "events@npm:3.3.0"
   checksum: 10c0/d6b6f2adbccbcda74ddbab52ed07db727ef52e31a61ed26db9feb7dc62af7fc8e060defa65e5f8af9449b86b52cc1a1f6a79f2eafcf4e62add2b7a1fa4a432f6
+  languageName: node
+  linkType: hard
+
+"eventsource@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "eventsource@npm:2.0.2"
+  checksum: 10c0/0b8c70b35e45dd20f22ff64b001be9d530e33b92ca8bdbac9e004d0be00d957ab02ef33c917315f59bf2f20b178c56af85c52029bc8e6cc2d61c31d87d943573
   languageName: node
   linkType: hard
 
@@ -3985,7 +4069,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.1":
+"node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.9":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -5115,6 +5199,7 @@ __metadata:
     "@radix-ui/react-dialog": "npm:^1.1.2"
     "@radix-ui/react-icons": "npm:^1.3.0"
     "@radix-ui/react-slot": "npm:^1.1.0"
+    "@tonconnect/ui-react": "npm:^2.0.9"
     "@types/node": "npm:^22.7.4"
     "@types/react": "npm:^18.3.11"
     "@types/react-dom": "npm:^18.3.0"
@@ -5231,6 +5316,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tweetnacl-util@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "tweetnacl-util@npm:0.15.1"
+  checksum: 10c0/796fad76238e40e853dff79516406a27b41549bfd6fabf4ba89d87ca31acf232122f825daf955db8c8573cc98190d7a6d39ece9ed8ae0163370878c310650a80
+  languageName: node
+  linkType: hard
+
+"tweetnacl@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "tweetnacl@npm:1.0.3"
+  checksum: 10c0/069d9df51e8ad4a89fbe6f9806c68e06c65be3c7d42f0701cc43dba5f0d6064686b238bbff206c5addef8854e3ce00c643bff59432ea2f2c639feab0ee1a93f9
+  languageName: node
+  linkType: hard
+
 "type-check@npm:^0.4.0, type-check@npm:~0.4.0":
   version: 0.4.0
   resolution: "type-check@npm:0.4.0"
@@ -5266,11 +5365,20 @@ __metadata:
 
 "typescript@patch:typescript@npm%3A^5.5.3#optional!builtin<compat/typescript>":
   version: 5.6.2
-  resolution: "typescript@patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=d69c25"
+  resolution: "typescript@patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=5adc0c"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/e6c1662e4852e22fe4bbdca471dca3e3edc74f6f1df043135c44a18a7902037023ccb0abdfb754595ca9028df8920f2f8492c00fc3cbb4309079aae8b7de71cd
+  languageName: node
+  linkType: hard
+
+"ua-parser-js@npm:^1.0.35":
+  version: 1.0.39
+  resolution: "ua-parser-js@npm:1.0.39"
+  bin:
+    ua-parser-js: script/cli.js
+  checksum: 10c0/c6452b0c683000f10975cb0a7e74cb1119ea95d4522ae85f396fa53b0b17884358a24ffdd86a66030c6b2981bdc502109a618c79fdaa217ee9032c9e46fcc78a
   languageName: node
   linkType: hard
 

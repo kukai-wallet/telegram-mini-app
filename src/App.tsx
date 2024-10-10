@@ -9,6 +9,7 @@ import {
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 
+import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
 import './App.css'
@@ -45,6 +46,18 @@ function App() {
 
   const kukaiEmbedClient = useRef<KukaiEmbed>()
   const walletConnectClient = useRef<SignClient>()
+
+  const [tonConnectUI] = useTonConnectUI()
+  const tonWallet = useTonWallet()
+  const tonAddress = useTonAddress()
+
+  useEffect(() => {
+    if (tonWallet?.account?.address) {
+      setUser({ address: formatAddress(tonAddress), name: formatAddress(tonAddress), provider: PROVIDERS.TON_CONNECT, iconURL: "https://wallet.tonkeeper.com/img/toncoin.svg" })
+      setProvider(PROVIDERS.TON_CONNECT)
+    }
+  }, [tonWallet, tonAddress])
+
 
   const handleInit = async () => {
     const [KukaiEmbedClient, WalletConnectClient] = await Promise.all([initKukaiEmbedClient(), initWalletConnect()])
@@ -176,6 +189,7 @@ function App() {
   }
 
   async function handleKukaiEmbed() {
+    setIsOpen(false)
     setProvider(PROVIDERS.KUKAI_EMBED)
     setAppState(APP_STATE.LOADING)
 
@@ -192,6 +206,7 @@ function App() {
   }
 
   async function handleWalletConnect() {
+    setIsOpen(false)
     setAppState(APP_STATE.LOADING)
     setProvider(PROVIDERS.WALLET_CONNECT)
 
@@ -212,12 +227,19 @@ function App() {
     }
   }
 
+  async function handleTonConnect() {
+    setIsOpen(false)
+    tonConnectUI.openModal()
+  }
+
   async function handleDisconnect() {
     setAppState(APP_STATE.LOADING)
 
     try {
       if (provider === PROVIDERS.WALLET_CONNECT) {
         await disconnectWalletConnect(walletConnectClient.current!)
+      } else if (provider === PROVIDERS.TON_CONNECT) {
+        await tonConnectUI.disconnect()
       } else {
         await kukaiEmbedClient.current!.logout()
       }
@@ -247,7 +269,7 @@ function App() {
             {notReady ? <LoadingText /> : 'Connect Wallet'}
           </Button>}
         <Drawer open={isOpen} onClose={handleClose}>
-          <DrawerContent className="pb-6">
+          <DrawerContent className="pb-6 rounded-t-3xl">
             <DrawerHeader>
               <DrawerTitle>Connect Wallet</DrawerTitle>
             </DrawerHeader>
@@ -259,6 +281,10 @@ function App() {
               <Button variant="default" onClick={handleWalletConnect} disabled={isLoading && provider === PROVIDERS.WALLET_CONNECT}>
                 {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <WalletConnectIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
                 Wallet Connect
+              </Button>
+              <Button variant="default" onClick={handleTonConnect} disabled={isLoading && provider === PROVIDERS.TON_CONNECT}>
+                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <WalletConnectIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
+                Ton Connect
               </Button>
             </DrawerFooter>
           </DrawerContent>

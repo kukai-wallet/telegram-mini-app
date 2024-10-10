@@ -70,10 +70,10 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
                     </Badge>
                 </div>
             </CardContent>
-            <Button className="mb-6" onClick={handleClick} disabled={isLoading}>
+            {provider !== PROVIDERS.TON_CONNECT && <Button className="mb-6" onClick={handleClick} disabled={isLoading}>
                 {isLoading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
                 Send xtz
-            </Button>
+            </Button>}
         </Card>
     )
 }
