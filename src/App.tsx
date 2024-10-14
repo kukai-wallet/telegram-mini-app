@@ -9,6 +9,7 @@ import {
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 
+import { useAppKit, useAppKitAccount } from "@reown/appkit/react"
 import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
@@ -27,6 +28,12 @@ enum APP_STATE {
   READY,
 }
 
+const SHOW_PROVIDERS = {
+  [PROVIDERS.KUKAI_EMBED]: false,
+  [PROVIDERS.WALLET_CONNECT]: true,
+  [PROVIDERS.TON_CONNECT]: true,
+  [PROVIDERS.REOWN]: true,
+}
 
 interface User {
   address: string
@@ -50,6 +57,8 @@ function App() {
   const [tonConnectUI] = useTonConnectUI()
   const tonWallet = useTonWallet()
   const tonAddress = useTonAddress()
+  const appKit = useAppKit()
+  const appKitAccount = useAppKitAccount()
 
   useEffect(() => {
     if (tonWallet?.account?.address) {
@@ -57,6 +66,17 @@ function App() {
       setProvider(PROVIDERS.TON_CONNECT)
     }
   }, [tonWallet, tonAddress])
+
+  useEffect(() => {
+    if (!appKitAccount.isConnected && provider === PROVIDERS.REOWN) {
+      setUser(null)
+      setProvider(PROVIDERS.KUKAI_EMBED)
+    }
+    if (appKitAccount.isConnected && provider !== PROVIDERS.REOWN) {
+      setUser({ address: formatAddress(appKitAccount.address!), name: formatAddress(appKitAccount.address!), provider: PROVIDERS.REOWN, iconURL: "" })
+      setProvider(PROVIDERS.REOWN)
+    }
+  }, [appKitAccount.isConnected, appKitAccount.address, provider])
 
 
   const handleInit = async () => {
@@ -240,6 +260,8 @@ function App() {
         await disconnectWalletConnect(walletConnectClient.current!)
       } else if (provider === PROVIDERS.TON_CONNECT) {
         await tonConnectUI.disconnect()
+      } else if (provider === PROVIDERS.REOWN) {
+        await appKit.open()
       } else {
         await kukaiEmbedClient.current!.logout()
       }
@@ -249,7 +271,10 @@ function App() {
       setUser(null)
       setAppState(APP_STATE.READY)
     }
+  }
 
+  function handleEtherlink() {
+    appKit.open()
   }
 
   const isLoading = appState === APP_STATE.LOADING
@@ -274,26 +299,32 @@ function App() {
               <DrawerTitle>Connect Wallet</DrawerTitle>
             </DrawerHeader>
             <DrawerFooter>
-              <Button variant="default" disabled={isLoading && provider === PROVIDERS.KUKAI_EMBED} onClick={handleKukaiEmbed}>
+              <Button variant="default" disabled={!SHOW_PROVIDERS[PROVIDERS.KUKAI_EMBED] || (isLoading && provider === PROVIDERS.KUKAI_EMBED)} onClick={handleKukaiEmbed}>
                 {isLoading && provider === PROVIDERS.KUKAI_EMBED ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <EmailIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                Use Social
+                <span className="w-[120px] text-left pl-2">Use Social</span>
               </Button>
-              <Button variant="default" onClick={handleWalletConnect} disabled={isLoading && provider === PROVIDERS.WALLET_CONNECT}>
-                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <WalletConnectIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                Wallet Connect
+              <Button variant="default" onClick={handleWalletConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.WALLET_CONNECT] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
+                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://explorer.walletconnect.com/meta/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
+                <span className="w-[120px] text-left pl-2">Wallet Connect</span>
               </Button>
-              <Button variant="default" onClick={handleTonConnect} disabled={isLoading && provider === PROVIDERS.TON_CONNECT}>
-                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <WalletConnectIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                Ton Connect
+              <Button variant="default" onClick={handleTonConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.TON_CONNECT] || (isLoading && provider === PROVIDERS.TON_CONNECT)}>
+                {isLoading && provider === PROVIDERS.TON_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://docs.ton.org/img/favicon32x32.png" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
+                <span className="w-[120px] text-left pl-2">Ton Connect</span>
+              </Button>
+              <Button variant="default" onClick={handleEtherlink} disabled={!SHOW_PROVIDERS[PROVIDERS.REOWN] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
+                {isLoading && provider === PROVIDERS.REOWN ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://www.etherlink.com/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
+                <span className="w-[120px] text-left pl-2">Etherlink (WC)</span>
               </Button>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
       </div>
-      {!!telegramUserData && <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 mb-4 text-[14px]">
-        Unverified Telegram User: {telegramUserData}
-      </div>}
-    </main>
+      {
+        !!telegramUserData && <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 mb-4 text-[14px]">
+          Unverified Telegram User: {telegramUserData}
+        </div>
+      }
+    </main >
   )
 }
 

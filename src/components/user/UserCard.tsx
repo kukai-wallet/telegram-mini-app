@@ -26,6 +26,8 @@ const OPERATIONS = [
     }
 ]
 
+const HIDE_ACTION = new Set([PROVIDERS.TON_CONNECT, PROVIDERS.REOWN])
+
 export default function UserCard({ name, address, iconURL, provider, kukaiEmbedClient, walletConnectClient }: Props) {
     const [isLoading, setIsLoading] = useState(false)
 
@@ -70,7 +72,7 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
                     </Badge>
                 </div>
             </CardContent>
-            {provider !== PROVIDERS.TON_CONNECT && <Button className="mb-6" onClick={handleClick} disabled={isLoading}>
+            {!HIDE_ACTION.has(provider as PROVIDERS) && <Button className="mb-6" onClick={handleClick} disabled={isLoading}>
                 {isLoading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
                 Send xtz
             </Button>}
