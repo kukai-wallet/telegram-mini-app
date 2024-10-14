@@ -19,9 +19,10 @@ export function initAppKit() {
         metadata,
         projectId,
         features: {
-            email: true,
+            email: false,
             socials: [],
             analytics: true // Optional - defaults to your Cloud configuration
-        }
+        },
+        allWallets: 'HIDE'
     })
 }

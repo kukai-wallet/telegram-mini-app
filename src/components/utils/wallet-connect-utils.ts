@@ -99,7 +99,13 @@ export async function connectAccount(client: Client, accountChange: boolean = fa
                 if (sendDeeplinkOnly) {
                     window.open(`${KUKAI_DESKTOP_UNIVERSAL_LINK}wc?uri=${encodeURIComponent(uri)}`, "kukai")
                 } else {
-                    WalletConnectQRCodeModal.openModal({ uri })
+                    await WalletConnectQRCodeModal.openModal({ uri })
+                    if (window.innerHeight < 740) {
+                        await new Promise(res => {
+                            setTimeout(res, 150)
+                        })
+                        queueMicrotask(() => document.querySelector("wcm-modal")!.shadowRoot!.querySelector("wcm-modal-router")!.shadowRoot!.querySelector("wcm-connect-wallet-view")!.shadowRoot!.querySelector("wcm-desktop-wallet-selection")!.shadowRoot!.querySelector("wcm-modal-content")!.remove())
+                    }
                 }
             } else {
                 const walletUrl = pairing?.peerMetadata?.url ?? 'undefined url';

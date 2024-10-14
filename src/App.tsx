@@ -14,7 +14,7 @@ import { useTonAddress, useTonConnectUI, useTonWallet } from "@tonconnect/ui-rea
 import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
 import './App.css'
-import { EmailIcon, WalletConnectIcon } from "./assets/icons/Icons"
+import { EmailIcon } from "./assets/icons/Icons"
 import UserCard from "./components/user/UserCard"
 import { initKukaiEmbedClient } from "./components/utils/kukai-embed"
 import { initWalletConnect } from "./components/utils/wallet-connect"
@@ -299,21 +299,21 @@ function App() {
               <DrawerTitle>Connect Wallet</DrawerTitle>
             </DrawerHeader>
             <DrawerFooter>
-              <Button variant="default" disabled={!SHOW_PROVIDERS[PROVIDERS.KUKAI_EMBED] || (isLoading && provider === PROVIDERS.KUKAI_EMBED)} onClick={handleKukaiEmbed}>
+              {SHOW_PROVIDERS[PROVIDERS.KUKAI_EMBED] && <Button variant="default" disabled={isLoading && provider === PROVIDERS.KUKAI_EMBED} onClick={handleKukaiEmbed}>
                 {isLoading && provider === PROVIDERS.KUKAI_EMBED ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <EmailIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                <span className="w-[120px] text-left pl-2">Use Social</span>
-              </Button>
+                <span className="w-[170px] text-left pl-2">Use Social</span>
+              </Button>}
               <Button variant="default" onClick={handleWalletConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.WALLET_CONNECT] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
                 {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://explorer.walletconnect.com/meta/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                <span className="w-[120px] text-left pl-2">Wallet Connect</span>
+                <span className="w-[170px] text-left pl-2">Wallet Connect</span>
               </Button>
               <Button variant="default" onClick={handleTonConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.TON_CONNECT] || (isLoading && provider === PROVIDERS.TON_CONNECT)}>
                 {isLoading && provider === PROVIDERS.TON_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://docs.ton.org/img/favicon32x32.png" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                <span className="w-[120px] text-left pl-2">Ton Connect</span>
+                <span className="w-[170px] text-left pl-2">Ton Connect</span>
               </Button>
               <Button variant="default" onClick={handleEtherlink} disabled={!SHOW_PROVIDERS[PROVIDERS.REOWN] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
                 {isLoading && provider === PROVIDERS.REOWN ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://www.etherlink.com/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                <span className="w-[120px] text-left pl-2">Etherlink (WC)</span>
+                <span className="w-[170px] text-left pl-2">Etherlink (Wallet Connect)</span>
               </Button>
             </DrawerFooter>
           </DrawerContent>
