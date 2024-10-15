@@ -1,6 +1,6 @@
-import Client from "@walletconnect/sign-client"
-import { getSdkError } from "@walletconnect/utils";
 import { WalletConnectModal } from "@walletconnect/modal";
+import Client from "@walletconnect/sign-client";
+import { getSdkError } from "@walletconnect/utils";
 import { CLIENT_CONFIG } from "./wallet-connect";
 
 export const NETWORK = "ghostnet"

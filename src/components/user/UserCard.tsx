@@ -1,13 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PROVIDERS } from "@/model/constants"
+import { ReloadIcon } from "@radix-ui/react-icons"
+import { SignClient } from "@walletconnect/sign-client/dist/types/client"
+import { KukaiEmbed } from "kukai-embed"
 import { useState } from "react"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
-import { KukaiEmbed } from "kukai-embed"
-import { SignClient } from "@walletconnect/sign-client/dist/types/client"
-import { getActiveSession, KUKAI_DESKTOP_UNIVERSAL_LINK, NETWORK } from "../utils/wallet-connect-utils"
-import { ReloadIcon } from "@radix-ui/react-icons"
+import { getActiveSession, NETWORK } from "../utils/wallet-connect-utils"
 
 interface Props {
     address: string
