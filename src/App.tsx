@@ -72,7 +72,7 @@ function App() {
       setUser(null)
       setProvider(PROVIDERS.KUKAI_EMBED)
     }
-    if (appKitAccount.isConnected && provider !== PROVIDERS.REOWN) {
+    if (appKitAccount.isConnected) {
       setUser({ address: formatAddress(appKitAccount.address!), name: formatAddress(appKitAccount.address!), provider: PROVIDERS.REOWN, iconURL: "" })
       setProvider(PROVIDERS.REOWN)
     }
@@ -268,7 +268,9 @@ function App() {
     } catch (error) {
       console.warn(error)
     } finally {
-      setUser(null)
+      if (provider !== PROVIDERS.REOWN) {
+        setUser(null)
+      }
       setAppState(APP_STATE.READY)
     }
   }
@@ -288,7 +290,7 @@ function App() {
         {user && <UserCard kukaiEmbedClient={kukaiEmbedClient.current!} walletConnectClient={walletConnectClient.current!} {...user} provider={provider} />}
         {user
           ? <Button disabled={appState !== APP_STATE.READY} variant="outline" onClick={handleDisconnect}>
-            {notReady ? <LoadingText /> : 'Disconnect'}
+            {notReady ? <LoadingText /> : provider === PROVIDERS.REOWN ? 'Open User Modal' : 'Disconnect'}
           </Button>
           : <Button disabled={appState !== APP_STATE.READY} variant="outline" onClick={handleClick}>
             {notReady ? <LoadingText /> : 'Connect Wallet'}

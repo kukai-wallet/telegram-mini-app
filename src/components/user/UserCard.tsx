@@ -40,7 +40,6 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
             } else {
                 const session = getActiveSession(walletConnectClient)
 
-                window.open(KUKAI_DESKTOP_UNIVERSAL_LINK, "kukai-mini-app")
                 await walletConnectClient.request({
                     topic: session.topic,
                     request: {
@@ -74,7 +73,7 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
             </CardContent>
             {!HIDE_ACTION.has(provider as PROVIDERS) && <Button className="mb-6" onClick={handleClick} disabled={isLoading}>
                 {isLoading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-                Send xtz
+                {isLoading ? "Waiting for wallet..." : "Send xtz"}
             </Button>}
         </Card>
     )
