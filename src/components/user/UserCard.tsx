@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { PROVIDERS } from "@/model/constants"
+import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "@/model/constants"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
@@ -38,6 +38,8 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
             if (provider === PROVIDERS.KUKAI_EMBED) {
                 await kukaiEmbedClient.send(OPERATIONS)
             } else {
+                window.location.href = KUKAI_MOBILE_UNIVERSAL_LINK
+
                 const session = getActiveSession(walletConnectClient)
 
                 await walletConnectClient.request({

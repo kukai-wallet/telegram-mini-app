@@ -1,3 +1,4 @@
+import { KUKAI_MOBILE_UNIVERSAL_LINK } from "@/model/constants";
 import { WalletConnectModal } from "@walletconnect/modal";
 import Client from "@walletconnect/sign-client";
 import { getSdkError } from "@walletconnect/utils";
@@ -12,21 +13,21 @@ export const WalletConnectQRCodeModal = new WalletConnectModal({
     themeMode: "dark",
     mobileWallets: [{
         name: "Kukai",
-        id: "kukai",
+        id: "kukai-mobile",
         links: {
-            universal: KUKAI_DESKTOP_UNIVERSAL_LINK,
-            native: "kukai://",
+            universal: KUKAI_MOBILE_UNIVERSAL_LINK,
+            native: KUKAI_MOBILE_UNIVERSAL_LINK,
         }
     }],
     desktopWallets: [{
         name: "Kukai",
-        id: "kukai",
+        id: "kukai-mobile",
         links: {
             universal: KUKAI_DESKTOP_UNIVERSAL_LINK,
             native: "kukai://",
         }
     }],
-    walletImages: { "kukai": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
+    walletImages: { "kukai-mobile": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
     chains: ["tezos"],
 });
 
@@ -67,7 +68,7 @@ export function formatAddress(address: string) {
     return `${address.slice(0, 7)}...${address.slice(-4)}`
 }
 
-const CONNECT_PAYLOAD = {
+export const CONNECT_PAYLOAD = {
     requiredNamespaces: {
         tezos: {
             chains: [`tezos:${NETWORK}`],
@@ -81,6 +82,23 @@ const CONNECT_PAYLOAD = {
             events: [],
             methods: ["tezos_send", "tezos_sign", "tezos_getAccounts"]
         }
+    }
+}
+
+export function removeDeeplinkChoice() {
+    try {
+        const lsKey = 'WALLETCONNECT_DEEPLINK_CHOICE';
+        const json = localStorage.getItem(lsKey);
+        if (json) {
+            const dl = JSON.parse(json);
+            if (dl?.href?.startsWith('kukai')) {
+                delete dl.href;
+                localStorage.setItem(lsKey, JSON.stringify(dl))
+            }
+        }
+
+    } catch (e) {
+        console.warn(e)
     }
 }
 

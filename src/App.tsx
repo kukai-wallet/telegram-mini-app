@@ -18,8 +18,8 @@ import { EmailIcon } from "./assets/icons/Icons"
 import UserCard from "./components/user/UserCard"
 import { initKukaiEmbedClient } from "./components/utils/kukai-embed"
 import { initWalletConnect } from "./components/utils/wallet-connect"
-import { connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveSession, getAddressFromSession, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
-import { PROVIDERS } from "./model/constants"
+import { CONNECT_PAYLOAD, connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveSession, getAddressFromSession, removeDeeplinkChoice, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
+import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "./model/constants"
 import { getTelegramUser } from "./utils/telegram-utils"
 
 enum APP_STATE {
@@ -28,11 +28,14 @@ enum APP_STATE {
   READY,
 }
 
+const KUKAI_ICON_URL = "https://ghostnet.kukai.app/assets/img/header-logo1.svg"
+
 const SHOW_PROVIDERS = {
   [PROVIDERS.KUKAI_EMBED]: false,
-  [PROVIDERS.WALLET_CONNECT]: true,
+  [PROVIDERS.WALLET_CONNECT]: false,
   [PROVIDERS.TON_CONNECT]: true,
   [PROVIDERS.REOWN]: true,
+  [PROVIDERS.KUKAI]: true,
 }
 
 interface User {
@@ -53,6 +56,7 @@ function App() {
 
   const kukaiEmbedClient = useRef<KukaiEmbed>()
   const walletConnectClient = useRef<SignClient>()
+  const walletConnectSession = useRef({ uri: "", approval: (): any => { } })
 
   const [tonConnectUI] = useTonConnectUI()
   const tonWallet = useTonWallet()
@@ -111,13 +115,13 @@ function App() {
         return
       }
 
-      setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
-      setProvider(PROVIDERS.WALLET_CONNECT)
+      setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.KUKAI })
+      setProvider(PROVIDERS.KUKAI)
     })
 
     client.on("session_delete", () => {
       setUser((prevUser) => {
-        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+        if (prevUser?.provider === PROVIDERS.KUKAI) {
           return null
         }
         return prevUser
@@ -126,7 +130,7 @@ function App() {
 
     client.on('session_expire', () => {
       setUser((prevUser) => {
-        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+        if (prevUser?.provider === PROVIDERS.KUKAI) {
           return null
         }
         return prevUser
@@ -136,7 +140,7 @@ function App() {
     client.core.pairing.events.on('pairing_delete', (payload) => {
       console.log('Pairing delete:', payload)
       setUser((prevUser) => {
-        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+        if (prevUser?.provider === PROVIDERS.KUKAI) {
           return null
         }
         return prevUser
@@ -146,7 +150,7 @@ function App() {
     client.core.pairing.events.on('pairing_expire', (payload) => {
       console.log('Pairing expired:', payload)
       setUser((prevUser) => {
-        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+        if (prevUser?.provider === PROVIDERS.KUKAI) {
           return null
         }
         return prevUser
@@ -162,7 +166,7 @@ function App() {
 
       if (!activePairing) {
         setUser((prevUser) => {
-          if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+          if (prevUser?.provider === PROVIDERS.KUKAI) {
             return null
           }
           return prevUser
@@ -172,7 +176,7 @@ function App() {
       }
 
       setUser((prevUser) => {
-        if (prevUser?.provider === PROVIDERS.WALLET_CONNECT) {
+        if (prevUser?.provider === PROVIDERS.KUKAI) {
           return null
         }
         return prevUser
@@ -184,8 +188,8 @@ function App() {
     const session = getActiveSession(client)
     const address = session.sessionProperties?.address || ''
 
-    setUser({ name: formatAddress(address), address, iconURL: '', provider: PROVIDERS.WALLET_CONNECT })
-    setProvider(PROVIDERS.WALLET_CONNECT)
+    setUser({ name: formatAddress(address), address, iconURL: KUKAI_ICON_URL, provider: PROVIDERS.KUKAI })
+    setProvider(PROVIDERS.KUKAI)
     setAppState(APP_STATE.READY)
 
     return client
@@ -202,6 +206,7 @@ function App() {
 
   function handleClick() {
     setIsOpen(true)
+    onOpen()
   }
 
   function handleClose() {
@@ -252,11 +257,47 @@ function App() {
     tonConnectUI.openModal()
   }
 
+  async function handleKukai() {
+    const { uri, approval } = walletConnectSession.current
+    window.location.href = `${KUKAI_MOBILE_UNIVERSAL_LINK}/wc?uri=${encodeURIComponent(uri)}`
+
+    try {
+      const session = await approval()
+      const address = session.sessionProperties?.address
+
+      if (!address) {
+        return
+      }
+
+      const formattedAddress = formatAddress(address)
+
+      setUser({ address, name: formattedAddress, provider: PROVIDERS.KUKAI, iconURL: KUKAI_ICON_URL })
+      setProvider(PROVIDERS.KUKAI)
+
+      removeDeeplinkChoice()
+    } catch (error) {
+      console.warn(error)
+    } finally {
+      setIsOpen(false)
+    }
+  }
+
+  async function onOpen() {
+    // const pairing = getActivePairing(walletConnectClient.current!);
+
+    const { uri, approval } = await walletConnectClient.current!.connect({
+      pairingTopic: undefined, //pairing?.topic,
+      ...CONNECT_PAYLOAD
+    })
+
+    walletConnectSession.current = { uri: uri!, approval }
+  }
+
   async function handleDisconnect() {
     setAppState(APP_STATE.LOADING)
 
     try {
-      if (provider === PROVIDERS.WALLET_CONNECT) {
+      if (provider === PROVIDERS.KUKAI) {
         await disconnectWalletConnect(walletConnectClient.current!)
       } else if (provider === PROVIDERS.TON_CONNECT) {
         await tonConnectUI.disconnect()
@@ -301,10 +342,10 @@ function App() {
               <DrawerTitle>Connect Wallet</DrawerTitle>
             </DrawerHeader>
             <DrawerFooter>
-              {SHOW_PROVIDERS[PROVIDERS.KUKAI_EMBED] && <Button variant="default" disabled={isLoading && provider === PROVIDERS.KUKAI_EMBED} onClick={handleKukaiEmbed}>
+              <Button variant="default" disabled={!SHOW_PROVIDERS[PROVIDERS.WALLET_CONNECT] || (isLoading && provider === PROVIDERS.KUKAI_EMBED)} onClick={handleKukaiEmbed}>
                 {isLoading && provider === PROVIDERS.KUKAI_EMBED ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <EmailIcon className="mr-2 h-5 w-5 [&>path]:fill-white" />}
-                <span className="w-[170px] text-left pl-2">Use Social</span>
-              </Button>}
+                <span className="w-[170px] text-left pl-2">Social</span>
+              </Button>
               <Button variant="default" onClick={handleWalletConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.WALLET_CONNECT] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
                 {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://explorer.walletconnect.com/meta/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
                 <span className="w-[170px] text-left pl-2">Wallet Connect</span>
@@ -316,6 +357,10 @@ function App() {
               <Button variant="default" onClick={handleEtherlink} disabled={!SHOW_PROVIDERS[PROVIDERS.REOWN] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
                 {isLoading && provider === PROVIDERS.REOWN ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://www.etherlink.com/favicon.ico" className="mr-2 h-5 w-5 [&>path]:fill-white" />}
                 <span className="w-[170px] text-left pl-2">Etherlink (Wallet Connect)</span>
+              </Button>
+              <Button variant="default" onClick={handleKukai} disabled={!SHOW_PROVIDERS[PROVIDERS.REOWN] || (isLoading && provider === PROVIDERS.KUKAI)}>
+                {isLoading && provider === PROVIDERS.KUKAI ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={KUKAI_ICON_URL} className="mr-2 h-5 w-5 [&>path]:fill-white" />}
+                <span className="w-[170px] text-left pl-2">Kukai iOS</span>
               </Button>
             </DrawerFooter>
           </DrawerContent>
