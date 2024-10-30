@@ -38,7 +38,9 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
             if (provider === PROVIDERS.KUKAI_EMBED) {
                 await kukaiEmbedClient.send(OPERATIONS)
             } else {
-                window.location.href = KUKAI_MOBILE_UNIVERSAL_LINK
+                if (provider === PROVIDERS.KUKAI) {
+                    window.location.href = KUKAI_MOBILE_UNIVERSAL_LINK
+                }
 
                 const session = getActiveSession(walletConnectClient)
 

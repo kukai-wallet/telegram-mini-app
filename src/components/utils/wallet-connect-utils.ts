@@ -1,4 +1,4 @@
-import { KUKAI_MOBILE_UNIVERSAL_LINK } from "@/model/constants";
+import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "@/model/constants";
 import { WalletConnectModal } from "@walletconnect/modal";
 import Client from "@walletconnect/sign-client";
 import { getSdkError } from "@walletconnect/utils";
@@ -6,6 +6,7 @@ import { CLIENT_CONFIG } from "./wallet-connect";
 
 export const NETWORK = "ghostnet"
 export const KUKAI_DESKTOP_UNIVERSAL_LINK = "https://ghostnet.kukai.app"
+const ACTIVE_PROVIDER_KEY = "ACTIVE_PROVIDER"
 
 export const WalletConnectQRCodeModal = new WalletConnectModal({
     projectId: CLIENT_CONFIG.projectId,
@@ -13,21 +14,21 @@ export const WalletConnectQRCodeModal = new WalletConnectModal({
     themeMode: "dark",
     mobileWallets: [{
         name: "Kukai",
-        id: "kukai-mobile",
+        id: "kukai-ej7a",
         links: {
             universal: KUKAI_MOBILE_UNIVERSAL_LINK,
-            native: KUKAI_MOBILE_UNIVERSAL_LINK,
+            native: "kukai://",
         }
     }],
     desktopWallets: [{
         name: "Kukai",
-        id: "kukai-mobile",
+        id: "kukai-ej7a",
         links: {
             universal: KUKAI_DESKTOP_UNIVERSAL_LINK,
-            native: "kukai://",
+            native: KUKAI_DESKTOP_UNIVERSAL_LINK,
         }
     }],
-    walletImages: { "kukai-mobile": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
+    walletImages: { "kukai-ej7a": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
     chains: ["tezos"],
 });
 
@@ -102,36 +103,29 @@ export function removeDeeplinkChoice() {
     }
 }
 
-export async function connectAccount(client: Client, accountChange: boolean = false, sendDeeplinkOnly?: boolean): Promise<[string | undefined, string | undefined]> {
+export async function connectAccount(client: Client, uri: string, approval: () => any): Promise<[string | undefined, string | undefined]> {
     let address, error, session
 
     try {
-        const pairing = getActivePairing(client);
-        const { uri, approval } = await client.connect({
-            pairingTopic: pairing?.topic,
-            ...CONNECT_PAYLOAD
-        })
-
-        if (!accountChange) {
-            if (uri) {
-                if (sendDeeplinkOnly) {
-                    window.open(`${KUKAI_DESKTOP_UNIVERSAL_LINK}wc?uri=${encodeURIComponent(uri)}`, "kukai")
-                } else {
-                    await WalletConnectQRCodeModal.openModal({ uri })
-                    if (window.innerHeight < 740) {
-                        await new Promise(res => {
-                            setTimeout(res, 150)
-                        })
-                        queueMicrotask(() => document.querySelector("wcm-modal")!.shadowRoot!.querySelector("wcm-modal-router")!.shadowRoot!.querySelector("wcm-connect-wallet-view")!.shadowRoot!.querySelector("wcm-desktop-wallet-selection")!.shadowRoot!.querySelector("wcm-modal-content")!.remove())
-                    }
-                }
-            } else {
-                const walletUrl = pairing?.peerMetadata?.url ?? 'undefined url';
-                console.log(`%cSession request sent to: ${walletUrl}`, 'background: black; color: white');
+        if (uri) {
+            await WalletConnectQRCodeModal.openModal({ uri })
+            if (window.innerHeight < 740) {
+                await new Promise(res => {
+                    setTimeout(res, 150)
+                })
+                queueMicrotask(() => document.querySelector("wcm-modal")!.shadowRoot!.querySelector("wcm-modal-router")!.shadowRoot!.querySelector("wcm-connect-wallet-view")!.shadowRoot!.querySelector("wcm-desktop-wallet-selection")!.shadowRoot!.querySelector("wcm-modal-content")!.remove())
             }
+        } else {
+            const pairing = getActivePairing(client);
+            const walletUrl = pairing?.peerMetadata?.url ?? 'undefined url';
+            console.log(`%cSession request sent to: ${walletUrl}`, 'background: black; color: white');
         }
 
-        session = await approval()
+        try {
+            session = await approval()
+        } catch (error: any) {
+            alert(error.message)
+        }
         WalletConnectQRCodeModal.closeModal()
         address = session.sessionProperties?.address
     } catch (e: any) {
@@ -148,22 +142,11 @@ export async function connectAccount(client: Client, accountChange: boolean = fa
                 localStorage.setItem(lsKey, JSON.stringify(dl))
             }
         }
-
-    } catch (e) { }
-    if (!accountChange) {
-        WalletConnectQRCodeModal.closeModal()
-    } else {
-        const previousSession = client.session.get(client.session.keys[0])
-
-        // TODO: fix these ugly casts
-        if (previousSession.topic !== (session as any).topic) {
-            await client.disconnect({
-                topic: previousSession.topic,
-                reason: getSdkError('USER_DISCONNECTED')
-            })
-        }
+    } catch (e) {
+        console.warn(e)
     }
 
+    // WalletConnectQRCodeModal.closeModal()
     return [address, error]
 }
 
@@ -210,4 +193,12 @@ export async function disconnectWalletConnect(client: Client) {
     } catch (e) {
         console.warn(e)
     }
+}
+
+export function getActiveProvider(): PROVIDERS {
+    return localStorage.getItem(ACTIVE_PROVIDER_KEY) as PROVIDERS || PROVIDERS.KUKAI
+}
+
+export function setActiveProvider(provider: PROVIDERS) {
+    localStorage.setItem(ACTIVE_PROVIDER_KEY, provider)
 }
