@@ -123,11 +123,12 @@ export async function connectAccount(client: Client, uri: string, approval: () =
 
         try {
             session = await approval()
-        } catch (error: any) {
-            alert(error.message)
+            WalletConnectQRCodeModal.closeModal()
+            address = session.sessionProperties?.address
+        } catch (e: any) {
+            alert(e.message)
+            error = e.message
         }
-        WalletConnectQRCodeModal.closeModal()
-        address = session.sessionProperties?.address
     } catch (e: any) {
         console.warn(e)
         error = e.message
