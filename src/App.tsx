@@ -22,6 +22,7 @@ import { CONNECT_PAYLOAD, connectAccount, disconnectWalletConnect, formatAddress
 import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "./model/constants"
 import { getTelegramUser } from "./utils/telegram-utils"
 import { isOniOS } from "./components/utils/mobile-utils"
+import { TezosConnectModal } from "./components/tezos-connect/TezosConnectModal"
 
 enum APP_STATE {
   INITIALIING,
@@ -33,6 +34,7 @@ const WALLET_CONNECT_PROVIDERS = new Set([PROVIDERS.KUKAI, PROVIDERS.WALLET_CONN
 
 const KUKAI_ICON_URL = "https://ghostnet.kukai.app/assets/img/header-logo1.svg"
 const WALLET_CONNECT_ICON_URL = "https://explorer.walletconnect.com/meta/favicon.ico"
+const TEZOS_CONNECT_URL = "https://cdn.worldvectorlogo.com/logos/tezos-2.svg"
 
 const SHOW_PROVIDERS = {
   [PROVIDERS.KUKAI_EMBED]: false,
@@ -40,6 +42,7 @@ const SHOW_PROVIDERS = {
   [PROVIDERS.TON_CONNECT]: true,
   [PROVIDERS.REOWN]: true,
   [PROVIDERS.KUKAI]: true,
+  [PROVIDERS.TEZOS_CONNECT]: true,
 }
 
 interface User {
@@ -53,6 +56,7 @@ interface User {
 let hasAttemptedInit = false;
 
 function App() {
+  const [inTezosConnect, setInTezosConnect] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [appState, setAppState] = useState(APP_STATE.INITIALIING)
@@ -270,7 +274,12 @@ function App() {
     tonConnectUI.openModal()
   }
 
-  async function handleKukai() {
+  function handleTezosConnect() {
+    setInTezosConnect(true)
+    setIsOpen(false)
+  }
+
+  async function _handleKukai() {
     const { uri, approval } = walletConnectSession.current
     window.location.href = `${KUKAI_MOBILE_UNIVERSAL_LINK}/wc?uri=${encodeURIComponent(uri)}`
 
@@ -371,9 +380,9 @@ function App() {
                 {isLoading && provider === PROVIDERS.REOWN ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src="https://www.etherlink.com/favicon.ico" className="mr-1 h-8 w-8 [&>path]:fill-white" />}
                 <span className="w-[170px] text-left pl-2">Etherlink (Wallet Connect)</span>
               </Button>
-              <Button variant="default" className="h-[54px] hover:bg-neutral-200 hover:border-transparent justify-start bg-secondary text-primary rounded-[18px]" onClick={handleKukai} disabled={!showKukaiIOSButton || !SHOW_PROVIDERS[PROVIDERS.REOWN] || (isLoading && provider === PROVIDERS.KUKAI)}>
-                {isLoading && provider === PROVIDERS.KUKAI ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={KUKAI_ICON_URL} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
-                <span className="w-[170px] text-left pl-2">Kukai iOS</span>
+              <Button variant="default" className="h-[54px] hover:bg-neutral-200 hover:border-transparent justify-start bg-secondary text-primary rounded-[18px]" onClick={handleTezosConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.TEZOS_CONNECT] || (isLoading && provider === PROVIDERS.TEZOS_CONNECT)}>
+                {isLoading && provider === PROVIDERS.TEZOS_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={TEZOS_CONNECT_URL} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
+                <span className="w-[170px] text-left pl-2">Tezos Connect</span>
               </Button>
             </DrawerFooter>
           </DrawerContent>
@@ -384,7 +393,8 @@ function App() {
           Unverified Telegram User: {telegramUserData}
         </div>
       }
-    </main >
+      {inTezosConnect && <TezosConnectModal walletConnectClient={walletConnectClient.current!} onClose={setInTezosConnect} setUser={setUser} />}
+    </main>
   )
 }
 
