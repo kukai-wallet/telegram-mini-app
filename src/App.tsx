@@ -15,14 +15,14 @@ import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
 import './App.css'
 import { EmailIcon } from "./assets/icons/Icons"
+import { TezosConnectModal } from "./components/tezos-connect/TezosConnectModal"
 import UserCard from "./components/user/UserCard"
 import { initKukaiEmbedClient } from "./components/utils/kukai-embed"
-import { initWalletConnect } from "./components/utils/wallet-connect"
-import { CONNECT_PAYLOAD, connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveProvider, getActiveSession, getAddressFromSession, removeDeeplinkChoice, setActiveProvider, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
-import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "./model/constants"
-import { getTelegramUser } from "./utils/telegram-utils"
 import { isOniOS } from "./components/utils/mobile-utils"
-import { TezosConnectModal } from "./components/tezos-connect/TezosConnectModal"
+import { initWalletConnect } from "./components/utils/wallet-connect"
+import { connectAccount, disconnectWalletConnect, formatAddress, getActivePairing, getActiveSession, getAddressFromSession, removeDeeplinkChoice, setActiveProvider, setPlatformChoice, WalletConnectQRCodeModal } from "./components/utils/wallet-connect-utils"
+import { ASSETS, KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "./model/constants"
+import { getTelegramUser } from "./utils/telegram-utils"
 
 enum APP_STATE {
   INITIALIING,
@@ -31,10 +31,6 @@ enum APP_STATE {
 }
 
 const WALLET_CONNECT_PROVIDERS = new Set([PROVIDERS.KUKAI, PROVIDERS.WALLET_CONNECT])
-
-const KUKAI_ICON_URL = "https://ghostnet.kukai.app/assets/img/header-logo1.svg"
-const WALLET_CONNECT_ICON_URL = "https://explorer.walletconnect.com/meta/favicon.ico"
-const TEZOS_CONNECT_URL = "https://cdn.worldvectorlogo.com/logos/tezos-2.svg"
 
 const SHOW_PROVIDERS = {
   [PROVIDERS.KUKAI_EMBED]: false,
@@ -125,8 +121,8 @@ function App() {
         return
       }
 
-      const provider = getActiveProvider()
-      const iconURL = provider === PROVIDERS.KUKAI ? KUKAI_ICON_URL : WALLET_CONNECT_ICON_URL
+      const provider = PROVIDERS.WALLET_CONNECT // getActiveProvider()
+      const iconURL = ASSETS.LOGOS.WALLET_CONNECT
 
       setUser({ name: formatAddress(address), address, iconURL, provider })
       setProvider(provider)
@@ -200,8 +196,8 @@ function App() {
     const session = getActiveSession(client)
     const address = session.sessionProperties?.address || ''
 
-    const provider = getActiveProvider()
-    const iconURL = provider === PROVIDERS.KUKAI ? KUKAI_ICON_URL : WALLET_CONNECT_ICON_URL
+    const provider = PROVIDERS.WALLET_CONNECT // getActiveProvider()
+    const iconURL = ASSETS.LOGOS.WALLET_CONNECT
 
     setUser({ name: formatAddress(address), address, iconURL, provider })
     setProvider(provider)
@@ -251,8 +247,7 @@ function App() {
     setProvider(PROVIDERS.WALLET_CONNECT)
 
     try {
-      const { uri, approval } = walletConnectSession.current
-      const [address] = await connectAccount(walletConnectClient.current!, uri, approval)
+      const [address] = await connectAccount(walletConnectClient.current!)
 
       if (!address) {
         setIsOpen(false)
@@ -260,7 +255,7 @@ function App() {
         return
       }
 
-      setUser({ name: formatAddress(address), address, iconURL: WALLET_CONNECT_ICON_URL, provider: PROVIDERS.WALLET_CONNECT })
+      setUser({ name: formatAddress(address), address, iconURL: ASSETS.LOGOS.WALLET_CONNECT, provider: PROVIDERS.WALLET_CONNECT })
       setActiveProvider(PROVIDERS.WALLET_CONNECT)
     } catch (error) {
       console.log(error)
@@ -293,7 +288,7 @@ function App() {
 
       const formattedAddress = formatAddress(address)
 
-      setUser({ address, name: formattedAddress, provider: PROVIDERS.KUKAI, iconURL: KUKAI_ICON_URL })
+      setUser({ address, name: formattedAddress, provider: PROVIDERS.KUKAI, iconURL: ASSETS.LOGOS.KUKAI })
       setProvider(PROVIDERS.KUKAI)
       setActiveProvider(PROVIDERS.KUKAI)
 
@@ -306,13 +301,7 @@ function App() {
   }
 
   async function onOpen() {
-    // const pairing = getActivePairing(walletConnectClient.current!);
-    const { uri, approval } = await walletConnectClient.current!.connect({
-      pairingTopic: undefined, //pairing?.topic,
-      ...CONNECT_PAYLOAD
-    })
-
-    walletConnectSession.current = { uri: uri!, approval }
+    // no-op
   }
 
   async function handleDisconnect() {
@@ -320,6 +309,7 @@ function App() {
 
     try {
       if (WALLET_CONNECT_PROVIDERS.has(provider)) {
+        setPlatformChoice(null)
         await disconnectWalletConnect(walletConnectClient.current!)
       } else if (provider === PROVIDERS.TON_CONNECT) {
         await tonConnectUI.disconnect()
@@ -369,7 +359,7 @@ function App() {
                 <span className="w-[170px] text-left pl-2">Social</span>
               </Button>}
               <Button variant="default" className="h-[54px] hover:bg-neutral-200 hover:border-transparent justify-start bg-secondary text-primary rounded-[18px]" onClick={handleWalletConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.WALLET_CONNECT] || (isLoading && provider === PROVIDERS.WALLET_CONNECT)}>
-                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={WALLET_CONNECT_ICON_URL} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
+                {isLoading && provider === PROVIDERS.WALLET_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={ASSETS.LOGOS.WALLET_CONNECT} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
                 <span className="w-[170px] text-left pl-2">Wallet Connect</span>
               </Button>
               <Button variant="default" className="h-[54px] hover:bg-neutral-200 hover:border-transparent justify-start bg-secondary text-primary rounded-[18px]" onClick={handleTonConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.TON_CONNECT] || (isLoading && provider === PROVIDERS.TON_CONNECT)}>
@@ -381,7 +371,7 @@ function App() {
                 <span className="w-[170px] text-left pl-2">Etherlink (Wallet Connect)</span>
               </Button>
               <Button variant="default" className="h-[54px] hover:bg-neutral-200 hover:border-transparent justify-start bg-secondary text-primary rounded-[18px]" onClick={handleTezosConnect} disabled={!SHOW_PROVIDERS[PROVIDERS.TEZOS_CONNECT] || (isLoading && provider === PROVIDERS.TEZOS_CONNECT)}>
-                {isLoading && provider === PROVIDERS.TEZOS_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={TEZOS_CONNECT_URL} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
+                {isLoading && provider === PROVIDERS.TEZOS_CONNECT ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : <img src={ASSETS.LOGOS.TEZOS_CONNECT} className="mr-1 h-8 w-8 [&>path]:fill-white" />}
                 <span className="w-[170px] text-left pl-2">Tezos Connect</span>
               </Button>
             </DrawerFooter>
@@ -393,7 +383,7 @@ function App() {
           Unverified Telegram User: {telegramUserData}
         </div>
       }
-      {inTezosConnect && <TezosConnectModal walletConnectClient={walletConnectClient.current!} onClose={setInTezosConnect} setUser={setUser} />}
+      {inTezosConnect && <TezosConnectModal walletConnectClient={walletConnectClient.current!} onClose={setInTezosConnect} setProvider={setProvider} setUser={setUser} />}
     </main>
   )
 }

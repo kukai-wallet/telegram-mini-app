@@ -7,6 +7,7 @@ import { CLIENT_CONFIG } from "./wallet-connect";
 export const NETWORK = "ghostnet"
 export const KUKAI_DESKTOP_UNIVERSAL_LINK = "https://ghostnet.kukai.app"
 const ACTIVE_PROVIDER_KEY = "ACTIVE_PROVIDER"
+const PLATFORM_CHOICE = "TEZOS_CONNECT:PLATFORM_CHOICE"
 
 export const WalletConnectQRCodeModal = new WalletConnectModal({
     projectId: CLIENT_CONFIG.projectId,
@@ -14,7 +15,7 @@ export const WalletConnectQRCodeModal = new WalletConnectModal({
     themeMode: "dark",
     mobileWallets: [{
         name: "Kukai",
-        id: "kukai-ej7a",
+        id: "kukai-w1",
         links: {
             universal: KUKAI_MOBILE_UNIVERSAL_LINK,
             native: "kukai://",
@@ -22,13 +23,13 @@ export const WalletConnectQRCodeModal = new WalletConnectModal({
     }],
     desktopWallets: [{
         name: "Kukai",
-        id: "kukai-ej7a",
+        id: "kukai-w1",
         links: {
             universal: KUKAI_DESKTOP_UNIVERSAL_LINK,
-            native: KUKAI_DESKTOP_UNIVERSAL_LINK,
+            native: "",
         }
     }],
-    walletImages: { "kukai-ej7a": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
+    walletImages: { "kukai-w1": "https://ghostnet.kukai.app/assets/img/header-logo1.svg" },
     chains: ["tezos"],
 });
 
@@ -103,8 +104,13 @@ export function removeDeeplinkChoice() {
     }
 }
 
-export async function connectAccount(client: Client, uri: string, approval: () => any): Promise<[string | undefined, string | undefined]> {
+export async function connectAccount(client: Client): Promise<[string | undefined, string | undefined]> {
     let address, error, session
+
+    const { uri, approval } = await client.connect({
+        pairingTopic: undefined,
+        ...CONNECT_PAYLOAD
+    })
 
     try {
         if (uri) {
@@ -203,3 +209,12 @@ export function getActiveProvider(): PROVIDERS {
 export function setActiveProvider(provider: PROVIDERS) {
     localStorage.setItem(ACTIVE_PROVIDER_KEY, provider)
 }
+
+export function setPlatformChoice(key: any) {
+    localStorage.setItem(PLATFORM_CHOICE, key)
+}
+
+export function getPlatformChoice() {
+    return localStorage.getItem(PLATFORM_CHOICE)
+}
+

@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS } from "@/model/constants"
+import { KUKAI_MOBILE_UNIVERSAL_LINK, PROVIDERS, WALLET_REGISTRY } from "@/model/constants"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { SignClient } from "@walletconnect/sign-client/dist/types/client"
 import { KukaiEmbed } from "kukai-embed"
@@ -7,7 +7,8 @@ import { useState } from "react"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
-import { getActiveSession, NETWORK } from "../utils/wallet-connect-utils"
+import { getActiveSession, getPlatformChoice, NETWORK } from "../utils/wallet-connect-utils"
+import { PLATFORMS } from "../tezos-connect/TezosConnectModal"
 
 interface Props {
     address: string
@@ -40,6 +41,14 @@ export default function UserCard({ name, address, iconURL, provider, kukaiEmbedC
             } else {
                 if (provider === PROVIDERS.KUKAI) {
                     window.location.href = KUKAI_MOBILE_UNIVERSAL_LINK
+                }
+
+                const platformChoice = getPlatformChoice()
+
+                if (platformChoice === PLATFORMS.WEB) {
+                    window.open(WALLET_REGISTRY.KUKAI.WEB_LINK, "kukai-tezos-connect")
+                } else if (platformChoice === PLATFORMS.MOBILE) {
+                    window.location.href = WALLET_REGISTRY.KUKAI.UNIVERSAL_LINK
                 }
 
                 const session = getActiveSession(walletConnectClient)

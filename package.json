@@ -18,7 +18,6 @@
     "@reown/appkit": "^1.1.2",
     "@reown/appkit-adapter-ethers": "^1.1.2",
     "@tonconnect/ui-react": "^2.0.9",
-    "@walletconnect/client": "^1.8.0",
     "@walletconnect/modal": "2.7.0",
     "@walletconnect/sign-client": "2.14.0",
     "@walletconnect/utils": "2.14.0",

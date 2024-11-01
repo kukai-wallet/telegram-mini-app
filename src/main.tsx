@@ -4,6 +4,11 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { initAppKit } from './utils/reown-utils.ts'
+import { EventEmitter } from 'events';
+
+const emitter = new EventEmitter();
+
+emitter.setMaxListeners(15); // Increase the limit as needed
 
 initAppKit()
 
